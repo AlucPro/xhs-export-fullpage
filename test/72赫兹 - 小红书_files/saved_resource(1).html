@@ -1,0 +1,51 @@
+
+<!-- saved from url=(0011)about:blank -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body></body><style class="stylus">/* ========================
+全局字体配置（所有网站生效）
+========================= */
+:root {
+  /* 你想要的正文字体 */
+  --my-font: "JetBrains Mono Light", "JetBrains Mono", "iA Writer Quattro S",
+    "Nanum Gothic Coding", "PingFang SC", "Microsoft YaHei Light", "LXGW WenKai",
+    ui-sans-serif, sans-serif !important;
+
+  /* 你想要的等宽字体（代码用） */
+  --my-mono: "iA Writer Mono S", "JetBrains Mono Light", "JetBrains Mono",
+    "Nanum Gothic Coding", "LXGW WenKai", ui-monospace, monospace !important;
+}
+
+/* ========================
+暴力全局覆盖字体（99% 网站生效）
+========================= */
+* {
+  font-family: var(--my-font) !important;
+}
+
+/* 代码、控制台、pre 标签使用等宽字体 */
+code,
+pre,
+kbd,
+textarea,
+[class*="code"],
+[id*="code"],
+[role="textbox"],
+[contenteditable="true"] {
+  font-family: var(--my-mono) !important;
+}
+
+/* ========================
+强制覆盖所有网站自带的字体变量
+（YouTube、Twitter、GitHub、知乎、B站 全通吃）
+========================= */
+:root {
+  --font-family-sans: var(--my-font) !important;
+  --font-family-monospace: var(--my-mono) !important;
+  --font-family-default: var(--my-font) !important;
+  --font-family-base: var(--my-font) !important;
+  --font-family: var(--my-font) !important;
+  --sans-font: var(--my-font) !important;
+  --mono-font: var(--my-mono) !important;
+  --base-font-family: var(--my-font) !important;
+  --body-font-family: var(--my-font) !important;
+  --default-font-family: var(--my-font) !important;
+}</style></html>

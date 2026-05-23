@@ -12,11 +12,12 @@ export interface PostData {
   postUrl: string;
 }
 
-export interface ExportTask {
-  postId: string;
-  url: string;
-  status: 'pending' | 'running' | 'success' | 'failed';
-  error?: string;
+export interface BatchState {
+  postIds: string[];
+  currentIndex: number;
+  successCount: number;
+  failures: Array<{ postId: string; error: string }>;
+  returnUrl: string;
 }
 
 export interface ExportResult {

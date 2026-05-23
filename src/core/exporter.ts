@@ -3,18 +3,25 @@ import { PostData } from '../types';
 import { sanitizeFilename } from '../utils/sanitize';
 import { buildExportHTML } from './template';
 
+export interface ExportProgress {
+  step: 'building' | 'loading_images' | 'rendering' | 'saving' | 'done';
+  message: string;
+  filename?: string;
+  sizeKB?: number;
+}
+
 export async function exportToImage(
   post: PostData,
-  options?: { onProgress?: (msg: string) => void }
-): Promise<void> {
-  const log = options?.onProgress ?? (() => {});
-  log('生成 HTML...');
+  options?: { onProgress?: (p: ExportProgress) => void }
+): Promise<{ filename: string; sizeKB: number }> {
+  const log = (p: ExportProgress) => options?.onProgress?.(p);
+
+  log({ step: 'building', message: '生成 HTML...' });
 
   const html = buildExportHTML(post);
 
-  log('渲染中...');
+  log({ step: 'loading_images', message: '加载图片...' });
 
-  // Create a temporary container off-screen
   const container = document.createElement('div');
   container.id = '__xhs_export_temp__';
   container.style.cssText =
@@ -22,22 +29,31 @@ export async function exportToImage(
   container.innerHTML = html;
   document.body.appendChild(container);
 
-  // Wait for images to load inside the container
   const imgs = container.querySelectorAll('img');
+  let loadedCount = 0;
+  const totalImgs = imgs.length;
+
   await Promise.all(
     Array.from(imgs).map(
       (img) =>
         new Promise<void>((resolve) => {
-          if (img.complete) return resolve();
-          img.onload = () => resolve();
+          if (img.complete) {
+            loadedCount++;
+            if (totalImgs > 1) log({ step: 'loading_images', message: `加载图片 ${loadedCount}/${totalImgs}...` });
+            return resolve();
+          }
+          img.onload = () => {
+            loadedCount++;
+            if (totalImgs > 1) log({ step: 'loading_images', message: `加载图片 ${loadedCount}/${totalImgs}...` });
+            resolve();
+          };
           img.onerror = () => resolve();
-          // Timeout after 10s per image
           setTimeout(resolve, 10000);
         })
     )
   );
 
-  log('生成图片...');
+  log({ step: 'rendering', message: '渲染长图...' });
 
   try {
     const rawCanvas = await html2canvas(container, {
@@ -48,18 +64,17 @@ export async function exportToImage(
       logging: false,
     });
 
-    // Compress: resize to max 750px wide, maintaining aspect ratio
     const MAX_WIDTH = 750;
     let canvas = rawCanvas;
     if (rawCanvas.width > MAX_WIDTH) {
       const ratio = MAX_WIDTH / rawCanvas.width;
-      const targetHeight = Math.round(rawCanvas.height * ratio);
       canvas = document.createElement('canvas');
       canvas.width = MAX_WIDTH;
-      canvas.height = targetHeight;
-      const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(rawCanvas, 0, 0, MAX_WIDTH, targetHeight);
+      canvas.height = Math.round(rawCanvas.height * ratio);
+      canvas.getContext('2d')!.drawImage(rawCanvas, 0, 0, MAX_WIDTH, canvas.height);
     }
+
+    log({ step: 'saving', message: '保存图片...' });
 
     const blob = await new Promise<Blob | null>((resolve) => {
       canvas.toBlob(resolve, 'image/png');
@@ -69,10 +84,13 @@ export async function exportToImage(
       throw new Error('Canvas toBlob returned null');
     }
 
-    const sizeKB = (blob.size / 1024).toFixed(0);
+    const sizeKB = Math.round(blob.size / 1024);
     const filename = `${sanitizeFilename(post.title)}_${post.postId}.png`;
     downloadBlob(blob, filename);
-    log(`已保存: ${filename} (${sizeKB}KB)`);
+
+    log({ step: 'done', message: '完成', filename, sizeKB });
+
+    return { filename, sizeKB };
   } finally {
     container.remove();
   }
