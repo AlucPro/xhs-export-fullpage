@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <div class="header">
+      <h1>小红书导出长图</h1>
+      <span class="version">v1.0</span>
+    </div>
+
+    <div class="section">
+      <h2>当前页面</h2>
+      <p id="page-status" class="status-text">检测中...</p>
+      <button id="btn-export-current" class="btn primary" disabled>导出当前帖子</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+      <h2>设置</h2>
+      <div class="form-row">
+        <label>图片格式</label>
+        <select id="setting-format">
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>图片质量</label>
+        <input id="setting-quality" type="range" min="50" max="100" value="100" />
+        <span id="quality-value">100%</span>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button id="btn-save" class="btn">保存设置</button>
+    </div>
+  </div>
+
+  <script type="module" src="popup.ts"></script>
+</body>
+</html>
